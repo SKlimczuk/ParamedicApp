@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/background"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/discoverySpace"
+        android:layout_width="280dp"
+        android:layout_height="400dp"
+        android:layout_centerHorizontal="true"/>
+
+    <View
+        android:id="@+id/sep1"
+        android:layout_width="240dp"
+        android:layout_height="6dp"
+        android:layout_below="@id/discoverySpace"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@android:color/black" />
+
+    <Button
+        android:id="@+id/discovery"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/sep1"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:onClick="discovery"
+        android:background="@drawable/custom_button"
+        android:text="@string/discovery" />
+
+    <Button
+        android:id="@+id/broadcast"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@id/discovery"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="10dp"
+        android:background="@drawable/custom_button"
+        android:onClick="advertise"
+        android:text="@string/broadcast" />
+
+    <ImageView
+        android:id="@+id/paramedic"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:background="@drawable/paramedic"
+        android:layout_below="@+id/broadcast"
+        android:layout_centerHorizontal="true"/>
+</RelativeLayout>
