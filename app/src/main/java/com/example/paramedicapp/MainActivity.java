@@ -15,6 +15,9 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.Build;
 import android.os.Handler;
 import android.support.annotation.RequiresApi;
@@ -38,7 +41,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private ParamedicLogic paramedicLogic = new DefaultParamedicLogic();
 
@@ -46,12 +49,15 @@ public class MainActivity extends AppCompatActivity {
     private BluetoothLeScanner mBluetoothLeScanner;
     private Handler mHandler = new Handler();
 
+    private LocationManager locationManager;
+
     private Paramedic paramedic;
 
     private Button broadcastButton;
     private Button discoveryButton;
     private TextView discoveryResult;
     private TextView paramedicIdView;
+    private TextView locationIdView;
 
     @RequiresApi(api = Build.VERSION_CODES.M)
     @Override
@@ -59,16 +65,23 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        paramedic = new Paramedic(paramedicLogic.generateId());
+        paramedic = new Paramedic(paramedicLogic.generateId(), 0, 0);
 
         broadcastButton = findViewById(R.id.broadcast);
         discoveryButton = findViewById(R.id.discovery);
         discoveryResult = findViewById(R.id.discoverySpace);
         paramedicIdView = findViewById(R.id.paramedicId);
+        locationIdView = findViewById(R.id.gpsData);
 
         checkIfBleIsSupported();
         checkIfBtIsEnabled();
         checkIfGpsIsEnabled();
+        checkLocationPermission();
+
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
+
+        onLocationChanged(location);
 
         printParamedicId(paramedic);
     }
@@ -89,45 +102,45 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    public void advertise(View v) {
-        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-
-        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-                .setConnectable(true)
-                .build();
-
-        final String advData = "test";
-
-        AdvertiseData advertiseData = new AdvertiseData.Builder()
-                .setIncludeDeviceName(true)
-                .setIncludeTxPowerLevel(false)
-                .addManufacturerData(1, advData.getBytes(Charset.forName("UTF-8")))
-                .build();
-
-        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-            @Override
-            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-                Log.i("BLE", "started advertising with data:" + advData);
-                super.onStartSuccess(settingsInEffect);
-            }
-
-            @Override
-            public void onStartFailure(int errorCode) {
-                Log.e("BLE", "Advertising onStartFailure: " + errorCode);
-                super.onStartFailure(errorCode);
-            }
-        };
-
-        advertiser.startAdvertising(settings, advertiseData, advertisingCallback);
-        try {
-            TimeUnit.SECONDS.sleep(1);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
-        advertiser.stopAdvertising(advertisingCallback);
-    }
+//    public void advertise(View v) {
+//        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+//
+//        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+//                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+//                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+//                .setConnectable(true)
+//                .build();
+//
+//        final String advData = "test";
+//
+//        AdvertiseData advertiseData = new AdvertiseData.Builder()
+//                .setIncludeDeviceName(true)
+//                .setIncludeTxPowerLevel(false)
+//                .addManufacturerData(1, advData.getBytes(Charset.forName("UTF-8")))
+//                .build();
+//
+//        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
+//            @Override
+//            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+//                Log.i("BLE", "started advertising with data:" + advData);
+//                super.onStartSuccess(settingsInEffect);
+//            }
+//
+//            @Override
+//            public void onStartFailure(int errorCode) {
+//                Log.e("BLE", "Advertising onStartFailure: " + errorCode);
+//                super.onStartFailure(errorCode);
+//            }
+//        };
+//
+//        advertiser.startAdvertising(settings, advertiseData, advertisingCallback);
+//        try {
+//            TimeUnit.SECONDS.sleep(1);
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
+//        advertiser.stopAdvertising(advertisingCallback);
+//    }
 
     public void discovery(View v) {
         mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
@@ -147,10 +160,11 @@ public class MainActivity extends AppCompatActivity {
             public void onScanResult(int callbackType, ScanResult result) {
                 super.onScanResult(callbackType, result);
 
-                StringBuilder builder = new StringBuilder(result.getDevice().getName());
+                StringBuilder builder = new StringBuilder("VICTIM DETECTED");
+                //todo: metoda do przetwarzania danych
                 builder.append("\n").append(
                         new String(result.getScanRecord().getManufacturerSpecificData(1))
-                        );
+                );
 
                 discoveryResult.setText(builder);
             }
@@ -184,7 +198,39 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    private void checkLocationPermission() {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED &&
+                ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION)
+                        != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+    }
+
+    @Override
+    public void onLocationChanged(Location location) {
+        paramedic.setLatitude(location.getLatitude());
+        paramedic.setLongitude(location.getLongitude());
+
+        locationIdView.setText("" + paramedic.getLatitude() + "\n" + paramedic.getLongitude());
+    }
+
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+
+    }
+
+    @Override
+    public void onProviderEnabled(String provider) {
+
+    }
+
+    @Override
+    public void onProviderDisabled(String provider) {
+
+    }
+
     private void printParamedicId(Paramedic paramedic) {
-        paramedicIdView.setText("ID : " + paramedic.getId());
+        paramedicIdView.setText("" + paramedic.getId());
     }
 }
