@@ -6,13 +6,54 @@
     android:background="@drawable/background"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/paramedicId"
+    <LinearLayout
+        android:id="@+id/idLayout"
         android:layout_width="240dp"
-        android:layout_height="wrap_content"
-        android:layout_centerHorizontal="true"
+        android:layout_height="70dp"
         android:layout_marginTop="20dp"
-        android:textSize="20sp"/>
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/idImage"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
+            android:background="@drawable/id"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="10dp"/>
+
+        <TextView
+            android:id="@+id/paramedicId"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
+            android:textSize="50sp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="20dp"/>
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/gpsLayout"
+        android:layout_width="240dp"
+        android:layout_height="70dp"
+        android:layout_below="@id/idLayout"
+        android:layout_marginTop="20dp"
+        android:layout_centerHorizontal="true">
+
+        <ImageView
+            android:id="@+id/gpsImage"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
+            android:background="@drawable/location"
+            android:layout_marginEnd="20dp"
+            android:layout_marginStart="10dp"/>
+
+        <TextView
+            android:id="@+id/gpsData"
+            android:layout_width="100dp"
+            android:layout_height="70dp"
+            android:textSize="50sp"
+            android:layout_marginEnd="10dp"
+            android:layout_marginStart="20dp"/>
+    </LinearLayout>
 
     <View
         android:id="@+id/sep"
@@ -21,13 +62,13 @@
         android:layout_centerHorizontal="true"
         android:layout_marginTop="20dp"
         android:layout_marginBottom="20dp"
-        android:layout_below="@id/paramedicId"
+        android:layout_below="@id/gpsLayout"
         android:background="@android:color/black" />
 
     <TextView
         android:id="@+id/discoverySpace"
         android:layout_width="280dp"
-        android:layout_height="300dp"
+        android:layout_height="200dp"
         android:layout_centerHorizontal="true"
         android:layout_below="@id/sep"/>
 
