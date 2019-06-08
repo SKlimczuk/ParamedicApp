@@ -6,7 +6,8 @@ public class Patient {
     private int bloodSaturation;
     private int breathPerMinute;
 
-    public Patient() {}
+    public Patient() {
+    }
 
     public Patient(int id,
                    int pulse,
@@ -16,6 +17,10 @@ public class Patient {
         this.pulse = pulse;
         this.bloodSaturation = bloodSaturation;
         this.breathPerMinute = breathPerMinute;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 
     public int getId() {

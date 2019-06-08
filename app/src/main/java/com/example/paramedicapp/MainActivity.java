@@ -35,11 +35,10 @@ import com.example.paramedicapp.bluetooth.BluetoothConstants;
 import com.example.paramedicapp.logic.ParamedicLogic;
 import com.example.paramedicapp.logic.impl.DefaultParamedicLogic;
 import com.example.paramedicapp.model.Paramedic;
+import com.example.paramedicapp.model.Patient;
 
-import java.nio.charset.Charset;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.TimeUnit;
 
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
@@ -52,6 +51,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private LocationManager locationManager;
 
     private Paramedic paramedic;
+    private Patient patient;
 
     private Button broadcastButton;
     private Button discoveryButton;
@@ -66,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         setContentView(R.layout.activity_main);
 
         paramedic = new Paramedic(paramedicLogic.generateId(), 0, 0);
+        patient = new Patient();
 
         broadcastButton = findViewById(R.id.broadcast);
         discoveryButton = findViewById(R.id.discovery);
@@ -161,10 +162,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 super.onScanResult(callbackType, result);
 
                 StringBuilder builder = new StringBuilder("VICTIM DETECTED");
-                //todo: metoda do przetwarzania danych
-                builder.append("\n").append(
-                        new String(result.getScanRecord().getManufacturerSpecificData(1))
-                );
+
+                try {
+                    builder.append("\n").append(
+                            paramedicLogic.printEncodedSensorAdvertisePacket(
+                                    result.getScanRecord().getManufacturerSpecificData(1), patient
+                            )
+                    );
+                }catch (NullPointerException e){
+                    e.printStackTrace();
+                }
 
                 discoveryResult.setText(builder);
             }
