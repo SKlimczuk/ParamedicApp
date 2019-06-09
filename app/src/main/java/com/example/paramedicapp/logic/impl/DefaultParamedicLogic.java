@@ -1,19 +1,26 @@
 package com.example.paramedicapp.logic.impl;
 
+import android.os.Build;
+import android.support.annotation.RequiresApi;
+
 import com.example.paramedicapp.logic.ParamedicLogic;
 import com.example.paramedicapp.model.Patient;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 
 public class DefaultParamedicLogic implements ParamedicLogic {
+
+    public List<Patient> patients = new ArrayList<>();
+
     @Override
     public int generateId() {
         Random random = new Random();
         return random.nextInt() % 10000 + 11000;
     }
 
-    @Override
-    public void encodeSensorAdvertisePacket(byte[] advertisedData, Patient patient) {
+    public Patient encodeSensorAdvertisePacket(byte[] advertisedData, Patient patient) {
         String advDataConvertedToString = new String(advertisedData);
         String[] advDataArr = advDataConvertedToString.split(",");
 
@@ -25,11 +32,19 @@ public class DefaultParamedicLogic implements ParamedicLogic {
         patient.setId(Integer.parseInt(advDataArr[2]));
         //bpm
         patient.setId(Integer.parseInt(advDataArr[3]));
+
+        return new Patient(
+                Integer.parseInt(advDataArr[0]),
+                Integer.parseInt(advDataArr[1]),
+                Integer.parseInt(advDataArr[2]),
+                Integer.parseInt(advDataArr[3])
+        );
     }
 
+    @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public String printEncodedSensorAdvertisePacket(byte[] advertisedData, Patient patient) {
-        encodeSensorAdvertisePacket(advertisedData, patient);
+        patient = encodeSensorAdvertisePacket(advertisedData, patient);
 
         return  "id:" + patient.getId() + "," +
                 "pulse:" + patient.getPulse() + "," +
