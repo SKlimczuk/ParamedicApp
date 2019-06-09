@@ -15,6 +15,8 @@ import android.bluetooth.le.ScanSettings;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Color;
+import android.graphics.LightingColorFilter;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
@@ -46,6 +48,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     public BluetoothAdapter bluetoothAdapter;
     private BluetoothLeScanner mBluetoothLeScanner;
+    private BluetoothLeAdvertiser advertiser;
     private Handler mHandler = new Handler();
 
     private LocationManager locationManager;
@@ -79,6 +82,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         checkIfGpsIsEnabled();
         checkLocationPermission();
 
+        advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
+
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         Location location = locationManager.getLastKnownLocation(locationManager.NETWORK_PROVIDER);
 
@@ -103,47 +108,70 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         }
     }
 
-//    public void advertise(View v) {
-//        BluetoothLeAdvertiser advertiser = BluetoothAdapter.getDefaultAdapter().getBluetoothLeAdvertiser();
-//
-//        AdvertiseSettings settings = new AdvertiseSettings.Builder()
-//                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
-//                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
-//                .setConnectable(true)
-//                .build();
-//
-//        final String advData = "test";
-//
-//        AdvertiseData advertiseData = new AdvertiseData.Builder()
-//                .setIncludeDeviceName(true)
-//                .setIncludeTxPowerLevel(false)
-//                .addManufacturerData(1, advData.getBytes(Charset.forName("UTF-8")))
-//                .build();
-//
-//        AdvertiseCallback advertisingCallback = new AdvertiseCallback() {
-//            @Override
-//            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
-//                Log.i("BLE", "started advertising with data:" + advData);
-//                super.onStartSuccess(settingsInEffect);
-//            }
-//
-//            @Override
-//            public void onStartFailure(int errorCode) {
-//                Log.e("BLE", "Advertising onStartFailure: " + errorCode);
-//                super.onStartFailure(errorCode);
-//            }
-//        };
-//
-//        advertiser.startAdvertising(settings, advertiseData, advertisingCallback);
-//        try {
-//            TimeUnit.SECONDS.sleep(1);
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
-//        advertiser.stopAdvertising(advertisingCallback);
-//    }
+    public void advertise(View v) {
+        stopDiscovery();
+
+        signalingOfBroadcastStateChanged(true);
+
+        AdvertiseSettings settings = new AdvertiseSettings.Builder()
+                .setAdvertiseMode(AdvertiseSettings.ADVERTISE_MODE_BALANCED)
+                .setTxPowerLevel(AdvertiseSettings.ADVERTISE_TX_POWER_MEDIUM)
+                .setConnectable(false)
+                .build();
+
+        byte[] advData = paramedicLogic.customAdvertisingPacketGeneratorPatient(patient);
+
+        AdvertiseData advertiseData = new AdvertiseData.Builder()
+                .setIncludeDeviceName(true)
+                .setIncludeTxPowerLevel(false)
+                .addManufacturerData(1, advData)
+                .build();
+
+        byte[] advData2 = paramedicLogic.customAdvertisingPacketGeneratorLocation(paramedic);
+
+        AdvertiseData advertiseData2 = new AdvertiseData.Builder()
+                .setIncludeDeviceName(true)
+                .setIncludeTxPowerLevel(false)
+                .addManufacturerData(1, advData)
+                .build();
+
+        AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                Log.i("BLE", "started advertising");
+                super.onStartSuccess(settingsInEffect);
+            }
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                Log.e("BLE", "Advertising onStartFailure: " + errorCode);
+                super.onStartFailure(errorCode);
+            }
+        };
+
+        advertiser.startAdvertising(settings, advertiseData, advertiseCallback);
+        advertiser.startAdvertising(settings, advertiseData2, advertiseCallback);
+    }
+
+    private void stopAdvertise() {
+        AdvertiseCallback advertiseCallback = new AdvertiseCallback() {
+            @Override
+            public void onStartSuccess(AdvertiseSettings settingsInEffect) {
+                super.onStartSuccess(settingsInEffect);
+            }
+
+            @Override
+            public void onStartFailure(int errorCode) {
+                super.onStartFailure(errorCode);
+            }
+        };
+
+        advertiser.stopAdvertising(advertiseCallback);
+        signalingOfBroadcastStateChanged(false);
+    }
 
     public void discovery(View v) {
+        stopAdvertise();
+
         mBluetoothLeScanner = BluetoothAdapter.getDefaultAdapter().getBluetoothLeScanner();
         List<ScanFilter> filters = new LinkedList<>();
 
@@ -169,6 +197,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                                     result.getScanRecord().getManufacturerSpecificData(1), patient
                             )
                     );
+                    patient = paramedicLogic.encodeSensorAdvertisePacket(result.getScanRecord().getManufacturerSpecificData(1));
                 }catch (NullPointerException e){
                     e.printStackTrace();
                 }
@@ -189,6 +218,27 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         };
 
         mBluetoothLeScanner.startScan(filters, settings, mScanCallback);
+    }
+
+    public void stopDiscovery() {
+        ScanCallback scanCallback = new ScanCallback() {
+            @Override
+            public void onScanResult(int callbackType, ScanResult result) {
+                super.onScanResult(callbackType, result);
+            }
+
+            @Override
+            public void onBatchScanResults(List<ScanResult> results) {
+                super.onBatchScanResults(results);
+            }
+
+            @Override
+            public void onScanFailed(int errorCode) {
+                super.onScanFailed(errorCode);
+            }
+        };
+
+        mBluetoothLeScanner.stopScan(scanCallback);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -239,5 +289,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private void printParamedicId(Paramedic paramedic) {
         paramedicIdView.setText("" + paramedic.getId());
+    }
+
+    private void signalingOfBroadcastStateChanged(boolean state) {
+        if (state)
+            broadcastButton.getBackground()
+                    .setColorFilter(new LightingColorFilter(Color.TRANSPARENT, Color.BLUE));
+        else
+            broadcastButton.getBackground()
+                    .setColorFilter(new LightingColorFilter(Color.TRANSPARENT, Color.BLACK));
     }
 }

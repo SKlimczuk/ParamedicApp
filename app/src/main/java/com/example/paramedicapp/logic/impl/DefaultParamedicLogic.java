@@ -4,6 +4,7 @@ import android.os.Build;
 import android.support.annotation.RequiresApi;
 
 import com.example.paramedicapp.logic.ParamedicLogic;
+import com.example.paramedicapp.model.Paramedic;
 import com.example.paramedicapp.model.Patient;
 
 import java.util.ArrayList;
@@ -20,18 +21,9 @@ public class DefaultParamedicLogic implements ParamedicLogic {
         return random.nextInt() % 10000 + 11000;
     }
 
-    public Patient encodeSensorAdvertisePacket(byte[] advertisedData, Patient patient) {
+    public Patient encodeSensorAdvertisePacket(byte[] advertisedData) {
         String advDataConvertedToString = new String(advertisedData);
         String[] advDataArr = advDataConvertedToString.split(",");
-
-        //id
-        patient.setId(Integer.parseInt(advDataArr[0]));
-        //pulse
-        patient.setId(Integer.parseInt(advDataArr[1]));
-        //bs
-        patient.setId(Integer.parseInt(advDataArr[2]));
-        //bpm
-        patient.setId(Integer.parseInt(advDataArr[3]));
 
         return new Patient(
                 Integer.parseInt(advDataArr[0]),
@@ -44,11 +36,32 @@ public class DefaultParamedicLogic implements ParamedicLogic {
     @RequiresApi(api = Build.VERSION_CODES.N)
     @Override
     public String printEncodedSensorAdvertisePacket(byte[] advertisedData, Patient patient) {
-        patient = encodeSensorAdvertisePacket(advertisedData, patient);
+        patient = encodeSensorAdvertisePacket(advertisedData);
 
         return  "id:" + patient.getId() + "," +
                 "pulse:" + patient.getPulse() + "," +
                 "bs:" + patient.getBloodSaturation() + "," +
                 "bpm:" + patient.getBreathPerMinute();
+    }
+
+    @Override
+    public byte[] customAdvertisingPacketGeneratorPatient(Patient patient) {
+        String toConvert  =
+                        patient.getId() + "," +
+                        patient.getPulse() + "," +
+                        patient.getBloodSaturation() + "," +
+                        patient.getBreathPerMinute();
+
+        return toConvert.getBytes();
+    }
+
+    @Override
+    public byte[] customAdvertisingPacketGeneratorLocation(Paramedic paramedic) {
+        String toConvert  =
+                        paramedic.getId() + "," +
+                        paramedic.getLongitude() + "," +
+                        paramedic.getLatitude() + ",";
+
+        return toConvert.getBytes();
     }
 }

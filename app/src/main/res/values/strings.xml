@@ -1,5 +1,12 @@
 <resources>
     <string name="app_name">ParamedicApp</string>
     <string name="discovery">DISCOVERY</string>
-    <string name="broadcast">BROADCAST</string>
+    <string name="broadcast">SEND REPORT</string>
+    <string name="chooseOptionSpinner">choose priority</string>
+    <string-array name="patientStatus">
+        <item>green</item>
+        <item>yellow</item>
+        <item>red</item>
+        <item>black</item>
+    </string-array>
 </resources>

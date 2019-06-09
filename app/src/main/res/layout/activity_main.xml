@@ -53,8 +53,6 @@
             android:layout_height="70dp"
             android:textColor="@android:color/black"
             android:textSize="25sp" />
-            <!--android:layout_marginEnd="10dp"-->
-            <!--android:layout_marginStart="0dp"-->
 
     </LinearLayout>
 
@@ -70,8 +68,8 @@
 
     <TextView
         android:id="@+id/discoverySpace"
-        android:layout_width="280dp"
-        android:layout_height="200dp"
+        android:layout_width="240dp"
+        android:layout_height="150dp"
         android:textSize="20sp"
         android:textColor="@android:color/black"
         android:layout_centerHorizontal="true"
@@ -93,16 +91,26 @@
         android:layout_height="wrap_content"
         android:layout_below="@id/sep1"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="10dp"
+        android:layout_marginBottom="20dp"
         android:onClick="discovery"
         android:background="@drawable/custom_button"
         android:text="@string/discovery" />
+
+    <Spinner
+        android:id="@+id/statusSpinner"
+        android:layout_width="240dp"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/discovery"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="20dp"
+        android:prompt="@string/chooseOptionSpinner"
+        android:entries="@array/patientStatus" />
 
     <Button
         android:id="@+id/broadcast"
         android:layout_width="240dp"
         android:layout_height="wrap_content"
-        android:layout_below="@id/discovery"
+        android:layout_below="@id/statusSpinner"
         android:layout_centerHorizontal="true"
         android:layout_marginBottom="10dp"
         android:background="@drawable/custom_button"
